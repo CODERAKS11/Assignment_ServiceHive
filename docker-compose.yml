@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: smartleads-db
+    ports:
+      - '27017:27017'
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - smartleads-network
+
+  backend:
+    build: ./backend
+    container_name: smartleads-api
+    ports:
+      - '5000:5000'
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://mongodb:27017/smart-leads
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-jwt-key-must-be-at-least-32-chars-long}
+      JWT_EXPIRES_IN: 7d
+      CLIENT_URL: http://localhost:3000
+    depends_on:
+      - mongodb
+    networks:
+      - smartleads-network
+
+  frontend:
+    build: ./frontend
+    container_name: smartleads-web
+    ports:
+      - '3000:80'
+    depends_on:
+      - backend
+    networks:
+      - smartleads-network
+
+volumes:
+  mongo_data:
+
+networks:
+  smartleads-network:
+    driver: bridge
