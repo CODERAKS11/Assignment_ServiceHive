@@ -43,7 +43,14 @@ app.get('/api/health', (_req, res) => {
 });
 
 // API routes
-app.use('/api', routes);
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+}, routes);
 
 // 404 handler
 app.use((_req, res) => {
@@ -70,6 +77,8 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
 
 export default app;
